@@ -374,4 +374,335 @@ class Graph(QtWidgets.QMainWindow):
 		self.update_angle_range(self.angle_min_val, self.angle_max_val)
 		self.update_fraction_range(self.fraction_min, self.fraction_max)
 
+class MultiPhasorGraph(QtWidgets.QMainWindow):
+	"""Displays multiple phasor clouds on a single plot with customizable colormaps"""
+	def __init__(self, name):
+		super(MultiPhasorGraph, self).__init__()
+
+		self.ui = uic.loadUi(dir_path + "/ui files/Graph.ui", self)
+
+		x = np.linspace(0, 1, 1000)
+		y = np.sqrt(0.5 * 0.5 - (x - 0.5) * (x - 0.5))
+		self.Plot.canvas.ax.set_xlim([0, 1])
+		self.Plot.canvas.ax.set_ylim([0, 0.6])
+		self.Plot.canvas.ax.plot(x, y, 'r')
+		self.Plot.canvas.ax.set_xlabel('g', fontsize=12, weight='bold')
+		self.Plot.canvas.ax.set_ylabel('s', fontsize=12, weight='bold')
+
+		# Dictionary to store multiple phasor clouds
+		self.phasor_clouds = {}
+		# Dictionary to store the colormap for each phasor cloud
+		self.cloud_cmaps = {}
+		# Dictionary to store transparency for each cloud
+		self.cloud_alphas = {}
+		
+		# Available colormaps
+		self.available_cmaps = {
+			'viridis': matplotlib.cm.viridis.copy(),
+			'viridis_r': matplotlib.cm.viridis_r.copy(),
+			'plasma': matplotlib.cm.plasma.copy(),
+			'inferno': matplotlib.cm.inferno.copy(),
+			'magma': matplotlib.cm.magma.copy(),
+			'cividis': matplotlib.cm.cividis.copy(),
+			'jet': matplotlib.cm.jet.copy(),
+			'rainbow': matplotlib.cm.rainbow.copy(),
+			'Greys': matplotlib.cm.Greys.copy(),
+			'hot': matplotlib.cm.hot.copy(),
+			'cool': matplotlib.cm.cool.copy()
+		}
+		
+		# Set transparent background for all colormaps
+		for cmap in self.available_cmaps.values():
+			cmap.set_bad('k', alpha=0)
+			
+		self.name = name
+		self.dead = False
+
+	def resizeEvent(self, event):
+		self.Plot.setGeometry(0, 0, event.size().width(), event.size().height())
+
+	def add_phasor_cloud(self, cloud_id, x_data, y_data, cmap_name='viridis', alpha=0.7):
+		"""Adds a phasor cloud to the collection with a specified colormap and transparency"""
+		if cmap_name not in self.available_cmaps:
+			cmap_name = 'viridis'
+			
+		# Store the data
+		self.phasor_clouds[cloud_id] = (x_data, y_data)
+		# Store the colormap
+		self.cloud_cmaps[cloud_id] = cmap_name
+		# Store the transparency
+		self.cloud_alphas[cloud_id] = alpha
+		# Replot everything
+		self.plot_all_clouds()
+		
+	def remove_phasor_cloud(self, cloud_id):
+		"""Removes a phasor cloud from the collection"""
+		if cloud_id in self.phasor_clouds:
+			del self.phasor_clouds[cloud_id]
+			del self.cloud_cmaps[cloud_id]
+			if cloud_id in self.cloud_alphas:
+				del self.cloud_alphas[cloud_id]
+			# Replot everything
+			self.plot_all_clouds()
+			
+	def set_cloud_colormap(self, cloud_id, cmap_name):
+		"""Changes the colormap for a specific phasor cloud"""
+		if cloud_id in self.cloud_cmaps and cmap_name in self.available_cmaps:
+			self.cloud_cmaps[cloud_id] = cmap_name
+			# Replot everything
+			self.plot_all_clouds()
+			
+	def set_cloud_transparency(self, cloud_id, alpha):
+		"""Changes the transparency for a specific phasor cloud"""
+		if cloud_id in self.phasor_clouds:
+			self.cloud_alphas[cloud_id] = alpha
+			# Replot everything
+			self.plot_all_clouds()
+	
+	def get_available_colormaps(self):
+		"""Returns a list of available colormap names"""
+		return list(self.available_cmaps.keys())
+			
+	def plot_all_clouds(self):
+		"""Plots all phasor clouds with their respective colormaps and transparency"""
+		# Clear current images and scatter plots
+		for item in self.Plot.canvas.ax.get_images():
+			item.remove()
+		
+		# Also clear any scatter plots
+		for artist in self.Plot.canvas.ax.collections:
+			artist.remove()
+			
+		# Plot each cloud with scatter plots for better transparency
+		for idx, (cloud_id, (x_data, y_data)) in enumerate(self.phasor_clouds.items()):
+			cmap_name = self.cloud_cmaps[cloud_id]
+			
+			# Get transparency for this cloud (default to 0.3 if not set)
+			alpha = self.cloud_alphas.get(cloud_id, 0.3)
+			
+			# Get a representative color from the colormap
+			color = self.available_cmaps[cmap_name](0.8)[:3]
+			
+			# Use scatter plot with decimation for better performance
+			# Only plot a subset of points if there are too many
+			max_points = 10000  # Reasonable limit for plot performance
+			
+			if len(x_data) > max_points:
+				# Randomly sample points to avoid performance issues
+				import random
+				indices = random.sample(range(len(x_data)), max_points)
+				x_plot = [x_data[i] for i in indices]
+				y_plot = [y_data[i] for i in indices]
+			else:
+				x_plot = x_data
+				y_plot = y_data
+				
+			# Use scatter plot with smaller point size for better transparency and visibility
+			self.Plot.canvas.ax.scatter(
+				x_plot, y_plot, 
+				color=color, 
+				alpha=alpha,
+				s=3.0,  # Small point size
+				marker='.',
+				linewidths=0,
+				edgecolors='none'
+			)
+			
+		# Add a legend with colormap names and transparency
+		self.add_legend()
+		self.Plot.canvas.draw()
+		
+	def add_legend(self):
+		"""Adds a legend showing which colormap is used for each cloud"""
+		# Create custom legend entries
+		import matplotlib.patches as mpatches
+		legend_entries = []
+		
+		for cloud_id, cmap_name in self.cloud_cmaps.items():
+			alpha = self.cloud_alphas.get(cloud_id, 0.7)
+			color = self.available_cmaps[cmap_name](0.8)[:3]  # Get a representative color
+			patch = mpatches.Patch(color=color, alpha=alpha, label=f"{cloud_id} ({cmap_name}, {int(alpha*100)}%)")
+			legend_entries.append(patch)
+			
+		# Add the legend
+		if legend_entries:
+			self.Plot.canvas.ax.legend(handles=legend_entries, loc='upper right', fontsize='small')
+			
+	def closeEvent(self, event):
+		"""Ran when the window is closed"""
+		self.dead = True
+		
+	def save_fig(self, file):
+		"""Saves the figure as a png file"""
+		self.Plot.canvas.fig.savefig(file)
+
+class MultiPhasorSelector(QtWidgets.QMainWindow):
+	"""Dialog for selecting which phasor clouds to display in the multi-view and their colormaps"""
+	def __init__(self, image_arr):
+		super(MultiPhasorSelector, self).__init__()
+		uic.loadUi(dir_path + "/ui files/MultiPhasorSelector.ui", self)
+		
+		self.image_arr = image_arr
+		self.selected_images = []
+		self.image_colormaps = {}
+		self.image_transparency = {}
+		
+		# Connect signals
+		self.btnSelectAll.clicked.connect(self.select_all)
+		self.btnDeselectAll.clicked.connect(self.deselect_all)
+		self.btnDisplay.clicked.connect(self.display_selected)
+		self.btnClose.clicked.connect(self.close)
+		
+		# Store available colormaps for dropdown
+		self.available_cmaps = [
+			'viridis', 'viridis_r', 'plasma', 'inferno', 'magma', 
+			'cividis', 'jet', 'rainbow', 'Greys', 'hot', 'cool'
+		]
+		
+		# Set up table
+		self.populate_table()
+		
+		self.multi_phasor_window = None
+		
+	def populate_table(self):
+		"""Populates the table with loaded images"""
+		self.tableWidget.setRowCount(len(self.image_arr))
+		
+		for row, image in enumerate(self.image_arr):
+			# Image name
+			name_item = QtWidgets.QTableWidgetItem(image.name)
+			name_item.setFlags(name_item.flags() & ~Qt.ItemIsEditable)  # Make read-only
+			self.tableWidget.setItem(row, 0, name_item)
+			
+			# Checkbox for inclusion
+			checkbox = QtWidgets.QCheckBox()
+			cell_widget = QtWidgets.QWidget()
+			layout = QtWidgets.QHBoxLayout(cell_widget)
+			layout.addWidget(checkbox)
+			layout.setAlignment(Qt.AlignCenter)
+			layout.setContentsMargins(0, 0, 0, 0)
+			cell_widget.setLayout(layout)
+			self.tableWidget.setCellWidget(row, 1, cell_widget)
+			
+			# Colormap dropdown
+			combo = QtWidgets.QComboBox()
+			combo.addItems(self.available_cmaps)
+			self.tableWidget.setCellWidget(row, 2, combo)
+			
+			# Transparency slider
+			slider_widget = QtWidgets.QWidget()
+			slider_layout = QtWidgets.QHBoxLayout(slider_widget)
+			slider = QtWidgets.QSlider(Qt.Horizontal)
+			slider.setMinimum(5)
+			slider.setMaximum(50)  # Reduced maximum to ensure transparency
+			slider.setValue(10)  # Default 10% opacity (90% transparency) for better multi-view
+			slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+			slider.setTickInterval(5)
+			
+			# Add value label
+			value_label = QtWidgets.QLabel("10%")
+			
+			# Use a unique connection for each slider to avoid issues
+			def make_update_func(label):
+				return lambda val: label.setText(f"{val}%")
+			
+			slider.valueChanged.connect(make_update_func(value_label))
+			
+			slider_layout.addWidget(slider)
+			slider_layout.addWidget(value_label)
+			slider_layout.setContentsMargins(5, 0, 5, 0)
+			slider_widget.setLayout(slider_layout)
+			
+			self.tableWidget.setCellWidget(row, 3, slider_widget)
+	
+	def select_all(self):
+		"""Selects all images in the table"""
+		for row in range(self.tableWidget.rowCount()):
+			cell_widget = self.tableWidget.cellWidget(row, 1)
+			checkbox = cell_widget.findChild(QtWidgets.QCheckBox)
+			checkbox.setChecked(True)
+	
+	def deselect_all(self):
+		"""Deselects all images in the table"""
+		for row in range(self.tableWidget.rowCount()):
+			cell_widget = self.tableWidget.cellWidget(row, 1)
+			checkbox = cell_widget.findChild(QtWidgets.QCheckBox)
+			checkbox.setChecked(False)
+	
+	def get_selected_images(self):
+		"""Gets the list of selected images and their chosen colormaps"""
+		selected_images = []
+		image_colormaps = {}
+		image_transparency = {}
+		
+		for row in range(self.tableWidget.rowCount()):
+			# Get checkbox state
+			cell_widget = self.tableWidget.cellWidget(row, 1)
+			checkbox = cell_widget.findChild(QtWidgets.QCheckBox)
+			
+			if checkbox.isChecked():
+				# Get colormap choice
+				combo = self.tableWidget.cellWidget(row, 2)
+				colormap = combo.currentText()
+				
+				# Get transparency value
+				slider_widget = self.tableWidget.cellWidget(row, 3)
+				slider = slider_widget.findChild(QtWidgets.QSlider)
+				transparency = slider.value() / 100.0  # Convert to 0-1 range
+				
+				# Store selections
+				selected_images.append(row)
+				image_colormaps[row] = colormap
+				image_transparency[row] = transparency
+		
+		return selected_images, image_colormaps, image_transparency
+	
+	def display_selected(self):
+		"""Creates and displays a multi-phasor window with the selected images"""
+		self.selected_images, self.image_colormaps, self.image_transparency = self.get_selected_images()
+		
+		if not self.selected_images:
+			# Show warning if no images selected
+			QtWidgets.QMessageBox.warning(self, "No Selection", 
+										 "Please select at least one image to display.")
+			return
+		
+		# Create multi-phasor window if it doesn't exist yet
+		if not self.multi_phasor_window or self.multi_phasor_window.dead:
+			self.multi_phasor_window = MultiPhasorGraph("Multi-Phasor View")
+		
+		# Clear existing clouds
+		for cloud_id in list(self.multi_phasor_window.phasor_clouds.keys()):
+			self.multi_phasor_window.remove_phasor_cloud(cloud_id)
+		
+		# Add selected clouds with chosen colormaps and transparency
+		for idx, image_idx in enumerate(self.selected_images):
+			image = self.image_arr[image_idx]
+			cloud_id = image.name
+			
+			# Get filtered g and s coordinates from the image
+			# Create masks based on the thresholds applied in the individual image
+			intensity_mask = image.intensity_mask
+			plot_angle_mask = image.plot_angle_mask
+			plot_circle_mask = image.plot_circle_mask
+			plot_fraction_mask = image.plot_fraction_mask
+			
+			# Combine all masks
+			combined_mask = intensity_mask | plot_angle_mask | plot_circle_mask | plot_fraction_mask
+			combined_mask = combined_mask | (image.x_adjusted < 0)
+			
+			# Apply mask to get only visible points
+			x_filtered = image.x_adjusted[~combined_mask].flatten()
+			y_filtered = image.y_adjusted[~combined_mask].flatten()
+			
+			# Get selected colormap and transparency
+			cmap = self.image_colormaps[image_idx]
+			alpha = self.image_transparency[image_idx]
+			
+			# Add to multi-phasor view
+			self.multi_phasor_window.add_phasor_cloud(cloud_id, x_filtered, y_filtered, cmap, alpha)
+		
+		# Show the window
+		self.multi_phasor_window.show()
+
 

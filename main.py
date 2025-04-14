@@ -109,6 +109,19 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.close_selected.clicked.connect(self.CloseWindows)
 		self.ShowRangeLines.clicked.connect(self.range_lines)
 
+		# Add button for multi-phasor view
+		self.multiPhasorButton = QtWidgets.QPushButton("Multi-Phasor View")
+		# Apply the same styling as other buttons
+		self.multiPhasorButton.setStyleSheet(self.GraphButton.styleSheet())
+		self.multiPhasorButton.setFont(self.GraphButton.font())
+		
+		# Set fixed width for the button to ensure text fits
+		self.multiPhasorButton.setFixedWidth(200)
+		
+		self.multiPhasorButton.clicked.connect(self.open_multi_phasor_selector)
+		# Add the button to an appropriate layout in the UI
+		self.GraphFrame.layout().addWidget(self.multiPhasorButton)
+
 	# To make it easier to use the program, various parameters are saved from the last use, so that you don't need
 		# to keep adding calibration parameters, or going to various directories each time
 		if os.path.isfile('saved_dict.pkl'):
@@ -623,6 +636,17 @@ class MainWindow(QtWidgets.QMainWindow):
 		with open('saved_dict.pkl', 'wb') as f:
 			pickle.dump(self.load_dict, f)
 		sys.exit()
+
+	def open_multi_phasor_selector(self):
+		"""Opens the dialog for selecting multiple phasor clouds to display in one view"""
+		if not self.image_arr:
+			# Show warning if no images loaded
+			QtWidgets.QMessageBox.warning(self, "No Images", 
+										 "Please load at least one image first.")
+			return
+			
+		self.multi_phasor_selector = DataWindows.MultiPhasorSelector(self.image_arr)
+		self.multi_phasor_selector.show()
 
 # Executes the MainWindow
 if __name__ == "__main__":
