@@ -5,9 +5,11 @@
 import sys
 from sys import platform
 from PyQt5 import QtWidgets
+from PyQt5 import QtGui
+
 from PyQt5 import uic, QtCore
 from PyQt5.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve, QTimer
-from PyQt5.QtGui import QIcon, QIntValidator, QDoubleValidator, QFontMetrics
+from PyQt5.QtGui import QIcon, QIntValidator, QDoubleValidator, QFontMetrics, QColor
 from PyQt5.QtWidgets import QFileDialog
 import DataWindows
 import os
