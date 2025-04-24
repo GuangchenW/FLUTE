@@ -750,20 +750,20 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
         # Dictionary to store transparency for each cloud
         self.cloud_alphas = {}
         
-        # Available colormaps
-        self.available_cmaps = {
-            'viridis': matplotlib.cm.viridis.copy(),
-            'viridis_r': matplotlib.cm.viridis_r.copy(),
-            'plasma': matplotlib.cm.plasma.copy(),
-            'inferno': matplotlib.cm.inferno.copy(),
-            'magma': matplotlib.cm.magma.copy(),
-            'cividis': matplotlib.cm.cividis.copy(),
-            'jet': matplotlib.cm.jet.copy(),
-            'rainbow': matplotlib.cm.rainbow.copy(),
-            'Greys': matplotlib.cm.Greys.copy(),
-            'hot': matplotlib.cm.hot.copy(),
-            'cool': matplotlib.cm.cool.copy()
-        }
+        # # Available colormaps
+        # self.available_cmaps = {
+        #     'viridis': matplotlib.cm.viridis.copy(),
+        #     'viridis_r': matplotlib.cm.viridis_r.copy(),
+        #     'plasma': matplotlib.cm.plasma.copy(),
+        #     'inferno': matplotlib.cm.inferno.copy(),
+        #     'magma': matplotlib.cm.magma.copy(),
+        #     'cividis': matplotlib.cm.cividis.copy(),
+        #     'jet': matplotlib.cm.jet.copy(),
+        #     'rainbow': matplotlib.cm.rainbow.copy(),
+        #     'Greys': matplotlib.cm.Greys.copy(),
+        #     'hot': matplotlib.cm.hot.copy(),
+        #     'cool': matplotlib.cm.cool.copy()
+        # }
         
         # Available direct colors (new addition)
         self.available_colors = [
@@ -772,9 +772,9 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
             'teal', 'olive', 'maroon', 'coral', 'indigo', 'turquoise'
         ]
         
-        # Set transparent background for all colormaps
-        for cmap in self.available_cmaps.values():
-            cmap.set_bad('k', alpha=0)
+        # # Set transparent background for all colormaps
+        # for cmap in self.available_cmaps.values():
+        #     cmap.set_bad('k', alpha=0)
             
         self.name = name
         self.dead = False
@@ -782,7 +782,7 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
     def resizeEvent(self, event):
         self.Plot.setGeometry(0, 0, event.size().width(), event.size().height())
 
-    def add_phasor_cloud(self, cloud_id, x_data, y_data, color_or_cmap='viridis', alpha=0.7):
+    def add_phasor_cloud(self, cloud_id, x_data, y_data, color_or_cmap='red', alpha=0.7):
         """Adds a phasor cloud to the collection with a specified color/colormap and transparency"""
         # Store the data
         self.phasor_clouds[cloud_id] = (x_data, y_data)
@@ -817,9 +817,9 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
             # Replot everything
             self.plot_all_clouds()
     
-    def get_available_colormaps(self):
-        """Returns a list of available colormap names"""
-        return list(self.available_cmaps.keys())
+    # def get_available_colormaps(self):
+    #     """Returns a list of available colormap names"""
+    #     return list(self.available_cmaps.keys())
     
     def get_available_colors(self):
         """Returns a list of available color names"""
@@ -842,14 +842,14 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
             # Get transparency for this cloud (default to 0.3 if not set)
             alpha = self.cloud_alphas.get(cloud_id, 0.3)
             
-            # Determine if it's a colormap or direct color
-            if color_or_cmap in self.available_cmaps:
-                # It's a colormap
-                color = self.available_cmaps[color_or_cmap](0.8)[:3]
-            else:
-                # It's a direct color
-                color = color_or_cmap
-            
+            # # Determine if it's a colormap or direct color
+            # if color_or_cmap in self.available_cmaps:
+            #     # It's a colormap
+            #     color = self.available_cmaps[color_or_cmap](0.8)[:3]
+            # else:
+            #     # It's a direct color
+            #     color = color_or_cmap
+            color = color_or_cmap
             # Use scatter plot with decimation for better performance
             # Only plot a subset of points if there are too many
             max_points = 10000  # Reasonable limit for plot performance
@@ -869,7 +869,7 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
                 x_plot, y_plot, 
                 color=color, 
                 alpha=alpha,
-                s=3.0,  # Smaller point size (reduced from 10)
+                s=10.0,  # Smaller point size (3)
                 marker='.',
                 linewidths=0,
                 edgecolors='none'
@@ -904,15 +904,17 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
         for cloud_id, color_or_cmap in self.cloud_cmaps.items():
             alpha = self.cloud_alphas.get(cloud_id, 0.7)
             
-            # Determine if it's a colormap or direct color
-            if color_or_cmap in self.available_cmaps:
-                # It's a colormap
-                color = self.available_cmaps[color_or_cmap](0.8)[:3]
-                label = f"{cloud_id} ({color_or_cmap}, {int(alpha*100)}%)"
-            else:
-                # It's a direct color
-                color = color_or_cmap
-                label = f"{cloud_id} ({color}, {int(alpha*100)}%)"
+            # # Determine if it's a colormap or direct color
+            # if color_or_cmap in self.available_cmaps:
+            #     # It's a colormap
+            #     color = self.available_cmaps[color_or_cmap](0.8)[:3]
+            #     label = f"{cloud_id} ({color_or_cmap}, {int(alpha*100)}%)"
+            # else:
+            #     # It's a direct color
+            #     color = color_or_cmap
+            #     label = f"{cloud_id} ({color}, {int(alpha*100)}%)"
+            color = color_or_cmap
+            label = f"{cloud_id} ({color}, {int(alpha*100)}%)"
             
             patch = mpatches.Patch(color=color, alpha=alpha, label=label)
             legend_entries.append(patch)
