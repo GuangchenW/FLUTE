@@ -41,7 +41,7 @@
     <item>
      <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>Select images to display, assign colormaps, and adjust transparency:</string>
+       <string>Select images to display, choose color, and adjust transparency:</string>
       </property>
      </widget>
     </item>

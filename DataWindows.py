@@ -223,10 +223,10 @@ class Graph(QtWidgets.QMainWindow):
 		# points which are outside of the thresholding
 		self.Plot.canvas.ax.add_image(im2)
 		self.Plot.canvas.ax.add_image(im)
-		if len(self.MHz) <= 2:
-			self.Plot.canvas.ax.text(0.8, 0.55, self.MHz + " MHz", fontsize=12)
-		else:
-			self.Plot.canvas.ax.text(0.75, 0.55, self.MHz + " MHz", fontsize=12)
+		# if len(self.MHz) <= 2:
+		# 	self.Plot.canvas.ax.text(0.8, 0.55, self.MHz + " MHz", fontsize=12)
+		# else:
+		# 	self.Plot.canvas.ax.text(0.75, 0.55, self.MHz + " MHz", fontsize=12)
 		# list = self.Plot.canvas.ax.get_images()
 
 
@@ -742,6 +742,27 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
         self.Plot.canvas.ax.plot(x, y, 'r')
         self.Plot.canvas.ax.set_xlabel('g', fontsize=12, weight='bold')
         self.Plot.canvas.ax.set_ylabel('s', fontsize=12, weight='bold')
+        
+        # Add lifetime labels on the semicircle
+        MHz = 80  # or use the actual MHz value if available
+        lifetimes = [0.5, 1, 2, 3, 4, 8]  # ns
+        omega = 2 * np.pi * MHz * 1e6
+        tau = np.array(lifetimes) * 1e-9
+        g = 1 / (1 + (omega * tau) ** 2)
+        s = (omega * tau) / (1 + (omega * tau) ** 2)
+        # Normalize to fit the semicircle (as in your plot)
+        # # Place the labels
+        # for i, t in enumerate(lifetimes):
+        #     self.Plot.canvas.ax.text(g[i]-0.05, s[i]+0.03, f"{t} ns", color='r', fontsize=9)
+        print(g, s)    
+        # Plot the dots
+        self.Plot.canvas.ax.scatter(g, s, color='r', s=10)
+        print(g, s)
+        # Place the labels next to the dots
+        for i, t in enumerate(lifetimes):
+            self.Plot.canvas.ax.text(g[i]-0.04, s[i]+0.03, f"{t} ns", color='r', fontsize=9)
+        self.Plot.canvas.draw()
+        
 
         # Dictionary to store multiple phasor clouds
         self.phasor_clouds = {}
@@ -824,6 +845,14 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
     def get_available_colors(self):
         """Returns a list of available color names"""
         return self.available_colors
+    def set_lifetime_points(self, *args):
+        """Adds the lifetime values to the universal circle"""
+        lifetime_x = args[0][0]
+        lifetime_y = args[0][1]
+        lifetimes = [0.5, 1, 2, 3, 4, 8]
+        self.Plot.canvas.ax.scatter(lifetime_x, lifetime_y, color='r', s=10)
+        for i in range(6):
+            self.Plot.canvas.ax.text(lifetime_x[i]-0.05, lifetime_y[i]+0.03, str(lifetimes[i]) + " ns", color='r', fontsize=9)
             
     def plot_all_clouds(self):
         """Plots all phasor clouds with their respective colors/colormaps and transparency"""
@@ -831,9 +860,9 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
         for item in self.Plot.canvas.ax.get_images():
             item.remove()
         
-        # Also clear any scatter plots
-        for artist in self.Plot.canvas.ax.collections:
-            artist.remove()
+        # # Also clear any scatter plots
+        # for artist in self.Plot.canvas.ax.collections:
+        #     artist.remove()
             
         # Plot each cloud with scatter plots for better transparency
         for idx, (cloud_id, (x_data, y_data)) in enumerate(self.phasor_clouds.items()):
@@ -890,7 +919,7 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
                 zorder=10,  # Ensure it's drawn on top
                 label=f'Center ({mean_x:.2f}, {mean_y:.2f})'
             )
-            
+        # self.set_lifetime_points(x_data[0],y_data[0])     
         # Add a legend with colormap/color names and transparency
         self.add_legend()
         self.Plot.canvas.draw()
@@ -1087,7 +1116,7 @@ class MultiPhasorSelector(QtWidgets.QMainWindow):
     def display_selected(self):
         """Creates and displays a multi-phasor window with the selected images"""
         self.selected_images, self.image_colors, self.image_transparency = self.get_selected_images()
-        
+        # self.multi_phasor_window.set_lifetime_points((x_data, y_data))
         if not self.selected_images:
             # Show warning if no images selected
             QtWidgets.QMessageBox.warning(self, "No Selection", 
