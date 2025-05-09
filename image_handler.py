@@ -438,30 +438,30 @@ class ImageHandler:
 		coors = self.x_adjusted.copy()
 		coors[mask] = float("nan")
 		x_avg = np.average(coors[~mask])
-		tifffile.imsave(file + '/' + self.name + '_g.tiff', coors.reshape(self.original_image.shape))
+		tifffile.imwrite(file + '/' + self.name + '_g.tiff', coors.reshape(self.original_image.shape))
 		coors = self.y_adjusted.copy()
 		coors[mask] = float("nan")
 		y_avg = np.average(coors[~mask])
-		tifffile.imsave(file + '/' + self.name + '_s.tiff', coors.reshape(self.original_image.shape))
+		tifffile.imwrite(file + '/' + self.name + '_s.tiff', coors.reshape(self.original_image.shape))
 
 		arr = self.angle_arr.copy()
 		omega = 2 * np.pi * self.freq / 1000 * self.harmonic
 		tau_p = 1 / omega * arr
 		tau_p[mask] = float("nan")
 		if save_type == 'all' or (save_type == 'current' and colormap == 2):
-			tifffile.imsave(file + '/' + self.name + '_TauP.tiff', tau_p)
+			tifffile.imwrite(file + '/' + self.name + '_TauP.tiff', tau_p)
 
 		arr = self.distance_arr.copy()
 		omega = 2 * np.pi * self.freq / 1000 * self.harmonic
 		tau_m = 1 / omega * np.sqrt(1 / np.power(arr, 2) - 1)
 		tau_m[mask] = float("nan")
 		if save_type == 'all' or (save_type == 'current' and colormap == 1):
-			tifffile.imsave(file + '/' + self.name + '_TauM.tiff', tau_m)
+			tifffile.imwrite(file + '/' + self.name + '_TauM.tiff', tau_m)
 
 		frac = self.fraction_arr.copy()
 		frac[mask] = float("nan")
 		if save_type == 'all' or (save_type == 'current' and colormap == 4):
-			tifffile.imsave(file + '/' + self.name + '_Dist.tiff', frac)
+			tifffile.imwrite(file + '/' + self.name + '_Dist.tiff', frac)
 
 		save_params = [
 			f'number Of 3x3 Median Filters: {self.num_filter}\n',
