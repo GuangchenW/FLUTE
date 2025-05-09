@@ -13,7 +13,9 @@ from PyQt5.QtGui import QIcon, QIntValidator, QDoubleValidator, QFontMetrics, QC
 from PyQt5.QtWidgets import QFileDialog
 import DataWindows
 import os
+
 from image_handler import ImageHandler
+from data_windows import MultiPhasorSelector
 import Calibration
 import pickle
 import numpy as np
@@ -647,7 +649,7 @@ class MainWindow(QtWidgets.QMainWindow):
 										 "Please load at least one image first.")
 			return
 			
-		self.multi_phasor_selector = DataWindows.MultiPhasorSelector(self.image_arr)
+		self.multi_phasor_selector = MultiPhasorSelector(self.image_arr)
 		self.multi_phasor_selector.show()
 
 # Executes the MainWindow
