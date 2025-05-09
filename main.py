@@ -62,7 +62,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.HomeFrameButton.clicked.connect(lambda: self.change_frame(self.MainFrame))
 		self.GraphButton.clicked.connect(lambda: self.change_frame(self.GraphFrame))
 		self.PictureButton.clicked.connect(lambda: self.change_frame(self.PictureFrame))
-
+		self.MultiPhasorButton.clicked.connect(self.open_multi_phasor_selector)
+		
 		self.Phi_cal_box.setValidator(QDoubleValidator())
 		self.Phi_cal_box.textEdited.connect(self.cal_update)
 		self.m_cal_box.setValidator(QDoubleValidator())
@@ -113,20 +114,7 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.close_selected.clicked.connect(self.CloseWindows)
 		self.ShowRangeLines.clicked.connect(self.range_lines)
 
-		# Add button for multi-phasor view
-		self.multiPhasorButton = QtWidgets.QPushButton("Multi-Phasor View")
-		# Apply the same styling as other buttons
-		self.multiPhasorButton.setStyleSheet(self.GraphButton.styleSheet())
-		self.multiPhasorButton.setFont(self.GraphButton.font())
-		
-		# Set fixed width for the button to ensure text fits
-		self.multiPhasorButton.setFixedWidth(200)
-		
-		self.multiPhasorButton.clicked.connect(self.open_multi_phasor_selector)
-		# Add the button to an appropriate layout in the UI
-		self.GraphFrame.layout().addWidget(self.multiPhasorButton)
-
-	# To make it easier to use the program, various parameters are saved from the last use, so that you don't need
+		# To make it easier to use the program, various parameters are saved from the last use, so that you don't need
 		# to keep adding calibration parameters, or going to various directories each time
 		if os.path.isfile('saved_dict.pkl'):
 			with open('saved_dict.pkl', 'rb') as f:
