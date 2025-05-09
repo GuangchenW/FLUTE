@@ -5,7 +5,7 @@
 from PyQt5 import QtWidgets
 from PyQt5 import uic
 from PyQt5.QtGui import QImage, QPixmap, QColor
-from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QLabel, QFileDialog
 from PyQt5.QtCore import Qt
 import numpy as np
 import cv2
@@ -100,9 +100,11 @@ class Graph(QtWidgets.QMainWindow):
 		self.Plot.canvas.ax.plot(x, y, 'r')
 		self.Plot.canvas.ax.set_xlabel('g', fontsize=12, weight='bold')
 		self.Plot.canvas.ax.set_ylabel('s', fontsize=12, weight='bold')
-
+		
+		self.btnSavePlot.clicked.connect(self.save_fig)
+		
 		self.MHz = '{0:.0f}'.format(MHz)
-
+		
 		# load the range lines horizontally and vertically
 		y = np.tan((np.radians(0)) * x - 0.001)
 		self.min_line, = self.Plot.canvas.ax.plot(x,y)
@@ -365,8 +367,22 @@ class Graph(QtWidgets.QMainWindow):
 		self.y_fraction = y
 
 	def save_fig(self, file):
-		"""Saves a picture of the plot in file path"""
-		self.Plot.canvas.save_fig(file)
+		"""Saves the figure as a png file"""	
+		# 1) Let the user pick a file name
+		fname, _ = QFileDialog.getSaveFileName(
+			self,
+			"Save Plot As…",
+			"",
+			"PNG Files (*.png);;All Files (*)"
+		)
+		
+		if not fname: return
+
+		self.Plot.canvas.figure.savefig(
+			fname,
+			dpi=300,
+			bbox_inches='tight'
+		)
 
 	def set_alpha(self, value):
 		self.line_alpha = value

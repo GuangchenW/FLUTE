@@ -171,8 +171,9 @@ class MultiPhasorSelector(QtWidgets.QMainWindow):
 		# self.multi_phasor_window.set_lifetime_points((x_data, y_data))
 		if not self.selected_images:
 			# Show warning if no images selected
-			QtWidgets.QMessageBox.warning(self, "No Selection", 
-										 "Please select at least one image to display.")
+			QtWidgets.QMessageBox.warning(self, 
+				"No Selection",
+				"Please select at least one image to display.")
 			return
 		
 		# Create multi-phasor window if it doesn't exist yet
@@ -212,3 +213,4 @@ class MultiPhasorSelector(QtWidgets.QMainWindow):
 		
 		# Show the window
 		self.multi_phasor_window.show()
+		

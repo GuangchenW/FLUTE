@@ -457,29 +457,6 @@ QPushButton:hover{
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QPushButton" name="btnSavePlot">
-        <property name="styleSheet">
-         <string notr="true">QPushButton{
-
-            border: 4px solid '#4aa3d1';
-            background: '#4aa3d1';
-            color: white;
-            font-family: 'Helvetica';
-            font-size: 15px;
-            padding: 0px 0;
-            margin-top: 0px
-}
-QPushButton:hover{
-	background: '#173953';
-     border: 4px solid '#173953'
-}</string>
-        </property>
-        <property name="text">
-         <string>Save Plot</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
     <item>

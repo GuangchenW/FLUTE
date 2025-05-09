@@ -2,7 +2,7 @@
 from PyQt5 import QtWidgets
 from PyQt5 import uic
 from PyQt5.QtGui import QImage, QPixmap, QColor
-from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QLabel, QFileDialog
 from PyQt5.QtCore import Qt
 import numpy as np
 import matplotlib.patches as patches
@@ -19,6 +19,8 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
 		# Load the ui component
 		ui_path = UI_DIR / "Graph.ui"
 		uic.loadUi(str(ui_path), self)
+		
+		self.btnSavePlot.clicked.connect(self.save_fig)
 		
 		x = np.linspace(0, 1, 1000)
 		y = np.sqrt(0.5 * 0.5 - (x - 0.5) * (x - 0.5))
@@ -241,6 +243,20 @@ class MultiPhasorGraph(QtWidgets.QMainWindow):
 		self.dead = True
 		
 	def save_fig(self, file):
-		"""Saves the figure as a png file"""
-		self.Plot.canvas.fig.savefig(file)
+		"""Saves the figure as a png file"""	
+		# 1) Let the user pick a file name
+		fname, _ = QFileDialog.getSaveFileName(
+			self,
+			"Save Plot As…",
+			"",
+			"PNG Files (*.png);;All Files (*)"
+		)
+		
+		if not fname: return
+
+		self.Plot.canvas.figure.savefig(
+			fname,
+			dpi=300,
+			bbox_inches='tight'
+		)
 	
