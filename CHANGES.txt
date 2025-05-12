@@ -1,4 +1,7 @@
 --- LIST OF CHANGES ---
 * Supports .ptu files in addition to .tif/tiff files.
-* Faster Calibration and FFT calculation
-* Multiphasor plots
+* Faster Calibration and FFT calculation.
+* Multiphasor plots.
+* Channel selection for .ptu files.
+* Improved code reusability and performance.
+
