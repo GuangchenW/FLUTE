@@ -101,7 +101,7 @@ class Graph(QtWidgets.QMainWindow):
 		self.Plot.canvas.ax.set_xlabel('g', fontsize=12, weight='bold')
 		self.Plot.canvas.ax.set_ylabel('s', fontsize=12, weight='bold')
 		
-		self.btnSavePlot.clicked.connect(self.save_fig)
+		self.btnSavePlot.clicked.connect(self.save_fig_as)
 		
 		self.MHz = '{0:.0f}'.format(MHz)
 		
@@ -367,8 +367,10 @@ class Graph(QtWidgets.QMainWindow):
 		self.y_fraction = y
 
 	def save_fig(self, file):
-		"""Saves the figure as a png file"""	
-		# 1) Let the user pick a file name
+		"""Saves the figure as a png file"""
+		self.Plot.canvas.save_fig(file)
+	
+	def save_fig_as(self):
 		fname, _ = QFileDialog.getSaveFileName(
 			self,
 			"Save Plot As…",
@@ -377,11 +379,10 @@ class Graph(QtWidgets.QMainWindow):
 		)
 		
 		if not fname: return
-
+		# This plot seems to fail to save if bbox_inches is set to 'tight'
 		self.Plot.canvas.figure.savefig(
 			fname,
 			dpi=300,
-			bbox_inches='tight'
 		)
 
 	def set_alpha(self, value):
